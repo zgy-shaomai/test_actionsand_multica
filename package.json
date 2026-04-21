@@ -1,0 +1,9 @@
+{
+  "name": "test_actionsand_multica",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:mock": "node scripts/mock-test.mjs"
+  }
+}

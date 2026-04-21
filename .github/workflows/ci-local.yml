@@ -1,0 +1,41 @@
+name: local-poc
+
+on:
+  workflow_dispatch:
+    inputs:
+      should_fail:
+        description: "Set to 1 to make the mock test fail"
+        required: false
+        default: "0"
+
+jobs:
+  mock-test:
+    runs-on: [self-hosted, windows, x64, multica-local]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run mock test
+        shell: powershell
+        env:
+          MOCK_TEST_FAIL: ${{ github.event.inputs.should_fail }}
+        run: npm run test:mock
+
+      - name: Create Multica issue
+        if: failure()
+        shell: powershell
+        env:
+          MULTICA_TOKEN: ${{ secrets.MULTICA_TOKEN }}
+          MULTICA_SERVER_URL: ${{ secrets.MULTICA_SERVER_URL }}
+          MULTICA_WORKSPACE_ID: ${{ secrets.MULTICA_WORKSPACE_ID }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          MULTICA_ASSIGNEE: repair-local
+        run: node scripts/create-multica-issue.mjs
