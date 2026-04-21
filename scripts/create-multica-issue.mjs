@@ -33,14 +33,10 @@ function runCommand(command, args) {
 }
 
 async function main() {
-  if (!process.env.MULTICA_TOKEN) {
-    throw new Error("MULTICA_TOKEN is missing.");
-  }
-
   const branch = process.env.GITHUB_REF_NAME ?? "unknown-branch";
   const sha = process.env.GITHUB_SHA ?? "unknown-sha";
   const repo = process.env.GITHUB_REPOSITORY ?? "unknown-repo";
-  const assignee = process.env.MULTICA_ASSIGNEE ?? "repair-local";
+  const assignee = process.env.MULTICA_ASSIGNEE ?? "";
 
   const title = `[auto-fix] mock test failed on ${branch}`;
   const description = [
@@ -60,11 +56,13 @@ async function main() {
     description,
     "--priority",
     "high",
-    "--assignee",
-    assignee,
     "--output",
     "json"
   ];
+
+  if (assignee) {
+    args.push("--assignee", assignee);
+  }
 
   const result = await runCommand("multica", args);
   console.log(result.stdout);
