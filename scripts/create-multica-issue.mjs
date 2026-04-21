@@ -32,19 +32,35 @@ function runCommand(command, args) {
   });
 }
 
+function truncate(text, maxLength) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 3)}...`;
+}
+
 async function main() {
   const branch = process.env.GITHUB_REF_NAME ?? "unknown-branch";
   const sha = process.env.GITHUB_SHA ?? "unknown-sha";
   const repo = process.env.GITHUB_REPOSITORY ?? "unknown-repo";
+  const repoName = repo.split("/").pop() ?? "unknown-repo";
   const assignee = process.env.MULTICA_ASSIGNEE ?? "";
+  const errorPath = process.env.ISSUE_ERROR_PATH ?? "scripts/mock-test.mjs";
+  const failureReason = process.env.ISSUE_REASON ?? "模拟测试失败";
 
-  const title = `[auto-fix] mock test failed on ${branch}`;
+  const title = truncate(
+    `[CI失败][${repoName}][${branch}] ${failureReason}（错误信息路径：${errorPath}）`,
+    180
+  );
   const description = [
-    "This is an automatic issue created by GitHub Actions.",
-    `repository: ${repo}`,
-    `branch: ${branch}`,
-    `commit: ${sha}`,
-    "reason: mock test failed"
+    "这是由 GitHub Actions 自动创建的失败任务。",
+    `项目仓库：${repo}`,
+    `分支：${branch}`,
+    `提交：${sha}`,
+    `失败原因：${failureReason}`,
+    `错误信息路径：${errorPath}`,
+    "处理建议：请先检查失败路径中的错误信息，再决定是否进入自动修复。"
   ].join("\n");
 
   const args = [
